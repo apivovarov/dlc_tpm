@@ -3,13 +3,13 @@
 // -lcpr -lpthread LD_LIBRARY_PATH=./cpr/build/lib ./dlc_tpm
 
 #include <cpr/cpr.h>
+#include <time.h>
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <thread>
-#include <time.h>
 #include <vector>
-
 
 using std::cout;
 using std::endl;
@@ -22,15 +22,17 @@ int th_num = 1;
 int warmup_time = 2;
 int test_time = 10;
 void test_ping(std::string body_str);
-void tpm_runner(int thread_id, const std::string& body, time_t ss, int *my_cnt);
+void tpm_runner(int thread_id, const std::string& body, time_t ss, int* my_cnt);
 
-void readArgs(int argc, char **argv) {
+void readArgs(int argc, char** argv) {
   vector<string> args(argv + 1, argv + argc);
 
   // Loop over command-line args
   for (auto i = args.begin(); i != args.end(); ++i) {
     if (*i == "-h" || *i == "--help") {
-      cout << "Syntax: dlc_tpm --json_file <file> --url <url> --threads <n> --test_time <n> "
+      cout << "Syntax: dlc_tpm --json_file <file> --url <url> "
+              "--threads <n> "
+              "--test_time <n> "
               "--warmup_time <n>"
            << endl;
       exit(1);
@@ -54,7 +56,7 @@ void readArgs(int argc, char **argv) {
   cout << "==================================================" << endl;
 }
 
-int main(int argc, char **argv) {
+int main(int argc, char** argv) {
   readArgs(argc, argv);
   std::ifstream t(json_file);
   if (!t.is_open()) {
@@ -75,7 +77,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < th_num; i++) {
     th_vector.emplace_back(tpm_runner, i, std::ref(body_str), ss, &(all_cnt[i]));
   }
-  for (auto &t : th_vector) {
+  for (auto& t : th_vector) {
     t.join();
   }
 
@@ -110,7 +112,7 @@ void test_ping(std::string body_str) {
   }
 }
 
-void tpm_runner(int thread_id, const std::string& body_str, time_t ss, int *my_cnt) {
+void tpm_runner(int thread_id, const std::string& body_str, time_t ss, int* my_cnt) {
   cpr::Url url{endpoint_url};
   cpr::Body body{body_str};
   cpr::Header header{{"Content-Type", "application/json"}};
