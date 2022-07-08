@@ -5,3 +5,4 @@ test.json
 *.out
 *.log
 dlc_tpm
+dlr_tpm

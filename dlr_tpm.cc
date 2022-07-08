@@ -1,4 +1,4 @@
-// g++ -O3 -std=c++17 dlr_tpm.cc -o dlr_tpm -ldlr -lpthread -L/root/workspace/neo-ai-dlr/build/lib
+// g++ -O3 -std=c++17 dlr_tpm.cc -o dlr_tpm -ldlr -lpthread -L$HOME/workspace/neo-ai-dlr/build/lib
 #define _POSIX_C_SOURCE 200809L
 #include "dlr.h"
 #include <stdlib.h>
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   GetDLRVersion(&dlr_ver);
   printf("DLR version: %s\n", dlr_ver);
   struct timespec start, end;
-  const char* model_file = "./model_ioc_compiled/compiled_models/1/AwsNeoTvm_0_abd61e3127e039dc";
+  const char* model_file = argv[1];
   printf("Loading model...\n");
   DLRModelHandle model = NULL;
   //DLR_TFConfig tf_config = {};

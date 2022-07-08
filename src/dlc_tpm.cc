@@ -16,7 +16,9 @@ using std::endl;
 using std::string;
 using std::vector;
 
+std::string bin_file = "";
 std::string json_file = "test.json";
+std::string content_type = "application/json";
 std::string endpoint_url = "http://localhost:8080/invocations";
 int th_num = 1;
 int warmup_time = 2;
@@ -30,12 +32,15 @@ void readArgs(int argc, char** argv) {
   // Loop over command-line args
   for (auto i = args.begin(); i != args.end(); ++i) {
     if (*i == "-h" || *i == "--help") {
-      cout << "Syntax: dlc_tpm --json_file <file> --url <url> "
+      cout << "Syntax: dlc_tpm --json_file <file> or --bin_file <file>"
+              " --url <url> "
               "--threads <n> "
               "--test_time <n> "
               "--warmup_time <n>"
            << endl;
       exit(1);
+    } else if (*i == "--bin_file") {
+      bin_file = *++i;
     } else if (*i == "--json_file") {
       json_file = *++i;
     } else if (*i == "--url") {
@@ -48,7 +53,13 @@ void readArgs(int argc, char** argv) {
       test_time = stoi(*++i);
     }
   }
-  cout << "Json file: " << json_file << endl;
+  if (bin_file == "") {
+    cout << "Json file: " << json_file << endl;
+  } else {
+    cout << "Bin file: " << bin_file << endl;
+    content_type = "application/x-image";
+  }
+  cout << "Content Type: " << content_type << endl;
   cout << "Endpoint: " << endpoint_url << endl;
   cout << "Number of threads: " << th_num << endl;
   cout << "Warmup time sec: " << warmup_time << endl;
@@ -56,18 +67,40 @@ void readArgs(int argc, char** argv) {
   cout << "==================================================" << endl;
 }
 
-int main(int argc, char** argv) {
-  readArgs(argc, argv);
-  std::ifstream t(json_file);
-  if (!t.is_open()) {
+std::string read_bin_file(const std::string& filepath) {
+  std::ifstream is(filepath, std::ifstream::binary);
+  if (!is) {
     std::cout << "\033[31m";
-    cout << "Error: Can not open file " << json_file << "\033[0m" << endl;
+    cout << "Error: Can not open file " << filepath << "\033[0m" << endl;
+    exit(3);
+  }
+  is.seekg(0, is.end);
+  int length = is.tellg();
+  is.seekg(0, is.beg);
+  std::vector<char> buffer;
+  buffer.resize(length);
+  is.read(&buffer[0], length);
+  is.close();
+  return std::string(buffer.begin(), buffer.end());
+}
+
+std::string read_json_file(const std::string& filepath) {
+  std::ifstream is(filepath);
+  if (!is) {
+    std::cout << "\033[31m";
+    cout << "Error: Can not open file " << filepath << "\033[0m" << endl;
     exit(3);
   }
   std::stringstream buffer;
-  buffer << t.rdbuf();
-  t.close();
-  const std::string body_str = buffer.str();
+  buffer << is.rdbuf();
+  is.close();
+  return buffer.str();
+}
+
+int main(int argc, char** argv) {
+  readArgs(argc, argv);
+
+  const std::string body_str = bin_file == "" ? read_json_file(json_file) : read_bin_file(bin_file);
 
   test_ping(body_str);
 
@@ -100,7 +133,7 @@ int main(int argc, char** argv) {
 void test_ping(std::string body_str) {
   cpr::Url url{endpoint_url};
   cpr::Body body{body_str};
-  cpr::Header header{{"Content-Type", "application/json"}};
+  cpr::Header header{{"Content-Type", content_type}};
   cpr::Response resp = cpr::Post(url, header, body);
   std::cout << resp.status_code << endl;
   if (resp.status_code != 200) {
@@ -115,7 +148,7 @@ void test_ping(std::string body_str) {
 void tpm_runner(int thread_id, const std::string& body_str, time_t ss, int* my_cnt) {
   cpr::Url url{endpoint_url};
   cpr::Body body{body_str};
-  cpr::Header header{{"Content-Type", "application/json"}};
+  cpr::Header header{{"Content-Type", content_type}};
   int cnt = 0;
   time_t start_time = ss + warmup_time;
   time_t stop_time = start_time + test_time;
