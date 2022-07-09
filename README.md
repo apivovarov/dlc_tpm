@@ -1,4 +1,4 @@
-# dlc_tpm
+# Tool to measure Sagemaker Inference containers TPM (transactions per minute)
 
 ### Build
 To build dlc_tpm
