@@ -29,6 +29,10 @@ Default payload: test_tf.json
 ```
 python3 image_to_json_tf.py cat.jpg
 
+curl -s -d "@test_tf.json" -H 'Content-Type: application/json' \
+-X POST http://localhost:8080/invocations
+
+# to run curl in loop use:
 ./test_curl_tf.sh
 ```
 
@@ -36,5 +40,20 @@ python3 image_to_json_tf.py cat.jpg
 ```
 python3 image_to_json_pt.py cat.jpg
 
+curl -s -d "@test_pt.json" -H 'Content-Type: application/json' \
+-X POST http://localhost:8080/invocations
+
+# to run curl in loop use:
 ./test_curl_pt.sh
+```
+
+#### Binary
+```
+# Some endpoints might support binary x-image input
+
+curl --data-binary @cat.jpg -H 'Content-Type:application/x-image' \
+-X POST http://localhost:8080/invocations
+
+# to run curl in loop use:
+./test_curl_bin.sh
 ```
