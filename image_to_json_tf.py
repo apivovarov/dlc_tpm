@@ -12,5 +12,5 @@ x = preprocess_input(x)
 batch_size = 1
 x = np.concatenate([x] * batch_size)
 body = json.dumps({"signature_name": "serving_default", "instances": x.tolist()})
-with open("test.json", "w") as f:
+with open("test_tf.json", "w") as f:
   f.write(body)
